@@ -1,6 +1,5 @@
 import React, { useState, useEffect  } from 'react';
 import { supabase } from '../lib/supabase';
-import ChatRealtime from './ChatRealtime'; 
 import ListaChat from './ListaChats';
 import AdminBookings from "./AdminBookings";
 import { io } from "socket.io-client";
