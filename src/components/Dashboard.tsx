@@ -65,7 +65,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
         { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
         { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
-        { id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
+        //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
         { id: 'logout', label: 'Cerrar Sesión', icon: LogOut, badge: null, action: handleLogout }
       ]
     },
