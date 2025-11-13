@@ -1,11 +1,11 @@
 :root {
-  --lp-bg: #0b1020;
-  --lp-primary: #ff3b7f;
-  --lp-primary-soft: rgba(255, 59, 127, 0.12);
-  --lp-text: #f9fafb;
-  --lp-muted: #9ca3af;
-  --lp-card: #15192b;
-  --lp-border: #1f2937;
+  --lp-bg: #f3f4f6;          /* fondo general clarito */
+  --lp-primary: #2563eb;     /* azul */
+  --lp-primary-soft: rgba(37, 99, 235, 0.08);
+  --lp-text: #111827;        /* texto casi negro */
+  --lp-muted: #6b7280;       /* gris texto secundario */
+  --lp-card: #ffffff;        /* tarjetas blancas */
+  --lp-border: #e5e7eb;      /* bordes gris claro */
 }
 
 body {
@@ -18,7 +18,8 @@ body {
 
 .lp-root {
   min-height: 100vh;
-  background: radial-gradient(circle at top left, #1f2937, #020617 70%);
+  background: linear-gradient(to bottom, #e5e7eb, #f9fafb);
+  color: var(--lp-text);
 }
 
 /* Container */
@@ -34,9 +35,9 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(16px);
-  background: linear-gradient(to bottom, rgba(2, 6, 23, 0.9), transparent);
-  border-bottom: 1px solid rgba(31, 41, 55, 0.7);
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--lp-border);
 }
 
 .lp-header-inner {
@@ -80,9 +81,9 @@ body {
 .lp-nav-cta {
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: var(--lp-primary-soft);
-  color: var(--lp-primary);
-  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: var(--lp-primary);
+  color: white;
+  border: none;
 }
 
 /* Hero */
@@ -107,7 +108,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   background: rgba(34, 197, 94, 0.1);
-  color: #bbf7d0;
+  color: rgb(0 0 0);
 }
 
 .lp-hero h1 {
@@ -197,11 +198,11 @@ body {
 
 /* Form card */
 .lp-form-card {
-  background: radial-gradient(circle at top right, #1f2937, #020617 80%);
+  background: var(--lp-card);
   border-radius: 1rem;
   border: 1px solid var(--lp-border);
   padding: 1.8rem 1.5rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.1);
 }
 
 .lp-form-card h2 {
@@ -232,7 +233,7 @@ body {
 .lp-field input,
 .lp-field select,
 .lp-field textarea {
-  background: #020617;
+  background: #ffffff;
   border-radius: 0.55rem;
   border: 1px solid var(--lp-border);
   padding: 0.55rem 0.7rem;
@@ -298,7 +299,7 @@ body {
 }
 
 .lp-section-alt {
-  background: #020617;
+  background: #e0e7ff;
 }
 
 .lp-features-grid {
@@ -359,9 +360,9 @@ body {
 
 /* Footer */
 .lp-footer {
-  border-top: 1px solid rgba(31, 41, 55, 0.7);
+  border-top: 1px solid var(--lp-border);
   padding: 1.5rem 0 2rem;
-  background: #020617;
+  background: #f9fafb;
 }
 
 .lp-footer-inner {
