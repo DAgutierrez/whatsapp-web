@@ -1,8 +1,9 @@
 import React, { useState, useEffect  } from 'react';
 import { supabase } from '../lib/supabase';
 import ListaChat from './ListaChats';
+// @ts-ignore - componente legado en JSX sin tipado
 import AdminBookings from "./AdminBookings";
-import { io } from "socket.io-client";
+// import { io } from "socket.io-client";
 import { 
   Home, 
   User, 
@@ -22,10 +23,12 @@ import {
   HelpCircle,
   Shield,
   Palette,
-  Database
+  Database,
+  Users
 } from 'lucide-react';
+import ClientManager from './ClientManager';
 
-const socket = io(import.meta.env.VITE_BACKEND_URL || "https://backendbot-fof9.onrender.com");
+// const socket = io(import.meta.env.VITE_BACKEND_URL || "https://backendbot-fof9.onrender.com");
 
 interface DashboardProps {
   user: any;
@@ -36,12 +39,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [activeSection, setActiveSection] = useState('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (user?.email) {
-      // 🔹 Este evento notifica al backend quién es el admin conectado
-      socket.emit("joinAdmin", user.email);
-    }
-  }, [user]);
+  // useEffect(() => {
+  //   if (user?.email) {
+  //     // 🔹 Este evento notifica al backend quién es el admin conectado
+  //     socket.emit("joinAdmin", user.email);
+  //   }
+  // }, [user]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -53,18 +56,19 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       title: 'Principal',
       items: [
         { id: 'home', label: 'Dashboard', icon: Home, badge: null },
-        { id: 'analytics', label: 'Análisis', icon: BarChart3, badge: 'Pro' },
-        { id: 'calendar', label: 'Calendario', icon: Calendar, badge: null },
-        { id: 'chats', label: 'Chats', icon: MessageSquare, badge: '5' },
+        // { id: 'analytics', label: 'Análisis', icon: BarChart3, badge: 'Pro' },
+        // { id: 'calendar', label: 'Calendario', icon: Calendar, badge: null },
+        // { id: 'chats', label: 'Chats', icon: MessageSquare, badge: '5' },
       ]
     },
     {
       title: 'Gestión',
       items: [
-        { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
+        // { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
-        { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
-        { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
+        { id: 'clients', label: 'Clientes', icon: Users, badge: null },
+        // { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
+        // { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
         //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
         { id: 'logout', label: 'Cerrar Sesión', icon: LogOut, badge: null, action: handleLogout }
       ]
@@ -73,9 +77,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       title: 'Configuración',
       items: [
         { id: 'profile', label: 'Mi Perfil', icon: User, badge: null },
-        { id: 'settings', label: 'Configuración', icon: Settings, badge: null },
-        { id: 'security', label: 'Seguridad', icon: Shield, badge: null },
-        { id: 'appearance', label: 'Apariencia', icon: Palette, badge: null },
+        // { id: 'settings', label: 'Configuración', icon: Settings, badge: null },
+        // { id: 'security', label: 'Seguridad', icon: Shield, badge: null },
+        // { id: 'appearance', label: 'Apariencia', icon: Palette, badge: null },
       ]
     }
   ];
@@ -219,6 +223,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         return (
           <div>
             <AdminBookings />
+          </div>
+        );
+      case 'clients':
+        return (
+          <div>
+            <ClientManager />
           </div>
         );  
 
