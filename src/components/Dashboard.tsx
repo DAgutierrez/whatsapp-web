@@ -2,6 +2,7 @@ import React, { useState, useEffect  } from 'react';
 import { supabase } from '../lib/supabase';
 import ListaChat from './ListaChats';
 import AdminBookings from "./AdminBookings";
+import LandingPeluqueria from './LandingPeluqueria';
 import { io } from "socket.io-client";
 import { 
   Home, 
@@ -64,9 +65,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
         { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
+        { id: 'forms', label: 'formulario', icon: Folder, badge: null },
+        { id: 'logout', label: 'Cerrar Sesión', icon: LogOut, badge: null, action: handleLogout },
         { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
-        //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
-        { id: 'logout', label: 'Cerrar Sesión', icon: LogOut, badge: null, action: handleLogout }
       ]
     },
     {
@@ -221,6 +222,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <AdminBookings />
           </div>
         );  
+
+        case 'forms':
+        return (
+          <div>
+            <LandingPeluqueria />
+          </div>
+        );
 
       case 'profile':
         return (
