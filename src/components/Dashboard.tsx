@@ -68,7 +68,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         // { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
         { id: 'clients', label: 'Clientes', icon: Users, badge: null },
-        { id: 'forms', label: 'formulario', icon: Folder, badge: null },
         // { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
         // { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
         //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
@@ -234,12 +233,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           </div>
         );  
 
-        case 'forms':
-        return (
-          <div>
-            <LandingPeluqueria />
-          </div>
-        );
 
       case 'profile':
         return (

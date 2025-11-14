@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import "./LandingPeluqueria.css"; // crea este archivo con el CSS de abajo
+import "./LandingPeluqueria.css";
+import { supabase } from "../lib/supabase"; // misma ruta que en tu LoginForm
 
 const LandingPeluqueria: React.FC = () => {
   const [form, setForm] = useState({
@@ -7,36 +8,169 @@ const LandingPeluqueria: React.FC = () => {
     businessType: "Peluquería",
     professionals: "",
     name: "",
-    country: "Chile",
     email: "",
+    password: "", // contraseña para Supabase Auth
     phone: "",
     notes: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí podrías llamar a tu backend / Supabase / API
-    console.log("Formulario enviado:", form);
-    alert("¡Gracias! Hemos recibido tu solicitud, te contactaremos pronto 💈");
-    // opcional: reset
-    setForm({
-      businessName: "",
-      businessType: "Peluquería",
-      professionals: "",
-      name: "",
-      country: "Chile",
-      email: "",
-      phone: "",
-      notes: "",
-    });
+  // 🔤 Generar code base: 3 letras del nombre + 3 números random
+  const generateBusinessCode = (name: string): string => {
+    // limpiar nombre: sin acentos, sin espacios, solo letras
+    const cleanName = name
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z]/g, "");
+
+    const base = (cleanName || "NEG").slice(0, 3).toUpperCase().padEnd(3, "X");
+    const randomNumber = Math.floor(100 + Math.random() * 900); // 100–999
+    return `${base}${randomNumber}`; // ej: PEL493
   };
+
+  // ✅ Generar un code que NO exista en Supabase
+  const getUniqueBusinessCode = async (name: string): Promise<string> => {
+    const maxAttempts = 7;
+
+    for (let i = 0; i < maxAttempts; i++) {
+      const code = generateBusinessCode(name);
+
+      const { data, error } = await supabase
+        .from("businesses")
+        .select("id")
+        .eq("code", code);
+
+      if (error) {
+        console.error("Error validando código de negocio:", error);
+        break; // si falla la validación, salimos y devolvemos algo
+      }
+
+      // si no hay registros con ese code -> está libre
+      if (!data || data.length === 0) {
+        return code;
+      }
+    }
+
+    // fallback: devolvemos un code aunque no hayamos podido validar del todo
+    return generateBusinessCode(name);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // 1) limpiar email
+      let email = form.email
+        .normalize("NFKC")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "")
+        .replace(/["'<>]/g, "");
+
+      console.log("EMAIL RAW:", form.email);
+      console.log("EMAIL LIMPIO:", email);
+
+      if (!email) {
+        alert("Ingresa un correo válido.");
+        setLoading(false);
+        return;
+      }
+
+      // 2) Crear el usuario en Supabase Auth
+      const { data: signUpData, error: signUpError } =
+        await supabase.auth.signUp({
+          email,
+          password: form.password,
+        });
+
+      if (signUpError) {
+        console.error("Error en signUp:", signUpError);
+        alert(signUpError.message || "No pudimos crear tu cuenta.");
+        setLoading(false);
+        return;
+      }
+
+      const user = signUpData.user;
+      if (!user) {
+        alert("No se pudo obtener el usuario creado. Intenta nuevamente.");
+        setLoading(false);
+        return;
+      }
+
+      // 3) Generar code único para el negocio
+      const code = await getUniqueBusinessCode(form.businessName);
+
+      // 4) Crear el negocio en la tabla businesses
+      const { error: businessError } = await supabase.from("businesses").insert([
+        {
+          name: form.businessName,
+          business_type: form.businessType,
+          professionals: form.professionals,
+          owner_name: form.name,
+          owner_id: user.id,
+          phone: form.phone,
+          email, // email limpio
+          description: form.notes || null,
+          code: code,
+        },
+      ]);
+
+      if (businessError) {
+        console.error("Error al crear negocio:", businessError);
+        alert(
+          "Creamos tu cuenta, pero hubo un problema al registrar tu negocio. Contáctanos por soporte."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // 5) Iniciar sesión automáticamente (IMPORTANTE para que App.tsx muestre el Dashboard)
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: form.password,
+      });
+
+      if (signInError) {
+        console.error("Error al iniciar sesión después del registro:", signInError);
+        alert(signInError.message || "No pudimos iniciar sesión automáticamente.");
+        setLoading(false);
+        return;
+      }
+
+
+      // Si llegamos aquí, ya hay sesión -> App.tsx debería mostrar Dashboard
+      alert("¡Cuenta y negocio creados! Entrando a tu panel 💈");
+
+      setForm({
+        businessName: "",
+        businessType: "Peluquería",
+        professionals: "",
+        name: "",
+        email: "",
+        password: "",
+        phone: "",
+        notes: "",
+      });
+    } catch (err) {
+      console.error("Error inesperado:", err);
+      alert("❌ Hubo un error inesperado. Intenta nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <div className="lp-root">
@@ -77,7 +211,10 @@ const LandingPeluqueria: React.FC = () => {
                 <span className="lp-feature-icon">📅</span>
                 <div>
                   <h3>Agenda online 24/7</h3>
-                  <p>Tus clientes reservan cuando quieran, tú solo miras la agenda llena.</p>
+                  <p>
+                    Tus clientes reservan cuando quieran, tú solo miras la agenda
+                    llena.
+                  </p>
                 </div>
               </div>
               <div className="lp-hero-feature">
@@ -85,7 +222,8 @@ const LandingPeluqueria: React.FC = () => {
                 <div>
                   <h3>Recordatorios por WhatsApp</h3>
                   <p>
-                    Reduce inasistencias con mensajes automáticos de confirmación y aviso.
+                    Reduce inasistencias con mensajes automáticos de confirmación
+                    y aviso.
                   </p>
                 </div>
               </div>
@@ -173,22 +311,7 @@ const LandingPeluqueria: React.FC = () => {
               </label>
 
               <div className="lp-two-cols">
-                <label className="lp-field">
-                  País
-                  <select
-                    name="country"
-                    value={form.country}
-                    onChange={handleChange}
-                  >
-                    <option>Chile</option>
-                    <option>Argentina</option>
-                    <option>Perú</option>
-                    <option>Colombia</option>
-                    <option>México</option>
-                    <option>España</option>
-                    <option>Otro</option>
-                  </select>
-                </label>
+                {/* Campo País eliminado por ahora */}
 
                 <label className="lp-field">
                   Teléfono / WhatsApp
@@ -204,13 +327,25 @@ const LandingPeluqueria: React.FC = () => {
               </div>
 
               <label className="lp-field">
-                Email
+                Email (será tu usuario)
                 <input
                   type="email"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
                   placeholder="tucorreo@peluqueria.cl"
+                  required
+                />
+              </label>
+
+              <label className="lp-field">
+                Contraseña
+                <input
+                  type="password"
+                  name="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Mínimo 6 caracteres"
                   required
                 />
               </label>
@@ -226,8 +361,12 @@ const LandingPeluqueria: React.FC = () => {
                 />
               </label>
 
-              <button type="submit" className="lp-btn-primary lp-btn-full">
-                Solicitar demo gratis
+              <button
+                type="submit"
+                className="lp-btn-primary lp-btn-full"
+                disabled={loading}
+              >
+                {loading ? "Creando cuenta..." : "Solicitar demo gratis"}
               </button>
 
               <p className="lp-terms">
@@ -345,7 +484,10 @@ const LandingPeluqueria: React.FC = () => {
       {/* FOOTER */}
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
-          <p>PeluqPro © {new Date().getFullYear()} - Agenda online para peluquerías y barberías</p>
+          <p>
+            PeluqPro © {new Date().getFullYear()} - Agenda online para peluquerías y
+            barberías
+          </p>
           <p className="lp-footer-small">
             Hecho para que dejes de mirar el celular y vuelvas a cortar pelo 😎
           </p>
