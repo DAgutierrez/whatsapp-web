@@ -4,6 +4,9 @@ import ListaChat from './ListaChats';
 // @ts-ignore - componente legado en JSX sin tipado
 import AdminBookings from "./AdminBookings";
 import LandingPeluqueria from './LandingPeluqueria';
+import BarberManager from './BarbersManager';
+import { GiRazor, GiBeard, GiHairStrands, GiComb } from "react-icons/gi";
+
 //import { io } from "socket.io-client";
 import { 
   Home, 
@@ -68,6 +71,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         // { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
         { id: 'clients', label: 'Clientes', icon: Users, badge: null },
+        { id: 'Barbers', label: 'Barberos', icon: GiBeard, badge: null },
         // { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
         // { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
         //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
@@ -232,6 +236,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <ClientManager />
           </div>
         );  
+      case 'Barbers':
+        return (
+          <div>
+            <BarberManager />
+          </div>
+        );
 
 
       case 'profile':

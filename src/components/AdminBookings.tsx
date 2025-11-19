@@ -306,10 +306,10 @@ export default function AdminBookings() {
 
   // ------------------- Util: normalizar teléfono -------------------
 
-  function normalizePhone(phone: string): string {
+  /*function normalizePhone(phone: string): string {
     const digits = phone.replace(/\D/g, "");
     return digits;
-  }
+  }*/
 
   // ------------------- Crear cliente rápido usando bright-task -------------------
 
