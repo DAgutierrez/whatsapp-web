@@ -5,6 +5,7 @@ import ListaChat from './ListaChats';
 import AdminBookings from "./AdminBookings";
 import LandingPeluqueria from './LandingPeluqueria';
 import BarberManager from './BarbersManager';
+import ServiceManager from './ServiceManager';
 import { GiRazor, GiBeard, GiHairStrands, GiComb } from "react-icons/gi";
 
 //import { io } from "socket.io-client";
@@ -72,6 +73,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
         { id: 'clients', label: 'Clientes', icon: Users, badge: null },
         { id: 'Barbers', label: 'Barberos', icon: GiBeard, badge: null },
+        { id: 'Services', label: 'Servicios', icon: FileText, badge: null },
         // { id: 'projects', label: 'Proyectos', icon: Folder, badge: null },
         // { id: 'messages', label: 'Mensajes', icon: MessageSquare, badge: '3' },
         //{ id: 'favorites', label: 'Favoritos', icon: Star, badge: null },
@@ -240,6 +242,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         return (
           <div>
             <BarberManager />
+          </div>
+        );
+      case 'Services':
+        return (
+          <div>
+            <ServiceManager />
           </div>
         );
 

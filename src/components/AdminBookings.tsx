@@ -62,12 +62,10 @@ export default function AdminBookings() {
 
   // ---- NUEVO: estado para crear cliente rápido ----
   const [isAddingClient, setIsAddingClient] = useState(false);
-  const [newClient, setNewClient] = useState<{ name: string; phone: string }>(
-    {
-      name: "",
-      phone: "",
-    }
-  );
+  const [newClient, setNewClient] = useState<{ name: string; phone: string }>({
+    name: "",
+    phone: "",
+  });
   const [creatingClient, setCreatingClient] = useState(false);
 
   // ---- NEGOCIO / TUTORIAL ----
@@ -160,54 +158,111 @@ export default function AdminBookings() {
     }
   }, [business]);
 
-  // ---- Calcular posición del tooltip según el paso ----
-  useEffect(() => {
-    if (tutorialStep > 0 && !tutorialLoading) {
-      const stepDef = tutorialSteps[tutorialStep - 1];
-      const selector = stepDef.highlightSelector;
-      const el = document.querySelector(selector) as HTMLElement | null;
+  // ---------- FUNCIONES DE TOOLTIP / SCROLL ----------
 
-      if (!el) {
-        setTooltipPos(null);
-        return;
-      }
+  const updateTooltipPosition = (stepIndex: number) => {
+    const stepDef = tutorialSteps[stepIndex];
+    if (!stepDef) return;
 
-      const rect = el.getBoundingClientRect();
+    const el = document.querySelector(
+      stepDef.highlightSelector
+    ) as HTMLElement | null;
 
-      let top = 0;
-      let left = 0;
-      let transform = "translate(-50%, -50%)";
-
-      switch (stepDef.placement) {
-        case "bottom":
-          top = rect.bottom + 16;
-          left = rect.left + rect.width / 2;
-          transform = "translate(-50%, 0)";
-          break;
-        case "top":
-          top = rect.top - 16;
-          left = rect.left + rect.width / 2;
-          transform = "translate(-50%, -100%)";
-          break;
-        case "left":
-          top = rect.top + rect.height / 2;
-          left = rect.left - 16;
-          transform = "translate(-100%, -50%)";
-          break;
-        case "right":
-          top = rect.top + rect.height / 2;
-          left = rect.right + 16;
-          transform = "translate(0, -50%)";
-          break;
-        default:
-          top = window.innerHeight / 2;
-          left = window.innerWidth / 2;
-          transform = "translate(-50%, -50%)";
-      }
-
-      setTooltipPos({ top, left, transform });
+    if (!el) {
+      setTooltipPos(null);
+      return;
     }
+
+    const rect = el.getBoundingClientRect();
+    let top = 0;
+    let left = 0;
+    let transform = "translate(-50%, -50%)";
+
+    switch (stepDef.placement) {
+      case "bottom":
+        top = rect.bottom + 16;
+        left = rect.left + rect.width / 2;
+        transform = "translate(-50%, 0)";
+        break;
+      case "top":
+        top = rect.top - 16;
+        left = rect.left + rect.width / 2;
+        transform = "translate(-50%, -100%)";
+        break;
+      case "left":
+        top = rect.top + rect.height / 2;
+        left = rect.left - 16;
+        transform = "translate(-100%, -50%)";
+        break;
+      case "right":
+        top = rect.top + rect.height / 2;
+        left = rect.right + 16;
+        transform = "translate(0, -50%)";
+        break;
+      default:
+        top = window.innerHeight / 2;
+        left = window.innerWidth / 2;
+        transform = "translate(-50%, -50%)";
+    }
+
+    // Limitar para que no se salga de pantalla
+    const margin = 16;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    top = Math.min(Math.max(top, margin), vh - margin);
+    left = Math.min(Math.max(left, margin), vw - margin);
+
+    setTooltipPos({ top, left, transform });
+  };
+
+  // ---- Calcular posición del tooltip + hacer scroll al paso ----
+  useEffect(() => {
+    if (tutorialStep <= 0 || tutorialLoading) {
+      setTooltipPos(null);
+      return;
+    }
+
+    const stepIndex = tutorialStep - 1;
+    const stepDef = tutorialSteps[stepIndex];
+    if (!stepDef) return;
+
+    const el = document.querySelector(
+      stepDef.highlightSelector
+    ) as HTMLElement | null;
+
+    if (el) {
+      // Scroll suave hacia el elemento del paso
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Recalcular posición después del scroll
+        setTimeout(() => {
+          updateTooltipPosition(stepIndex);
+        }, 300);
+      }, 0);
+    }
+
+    // Cálculo inicial (por si ya está en pantalla)
+    updateTooltipPosition(stepIndex);
+
+    const handler = () => updateTooltipPosition(stepIndex);
+    window.addEventListener("scroll", handler);
+    window.addEventListener("resize", handler);
+
+    return () => {
+      window.removeEventListener("scroll", handler);
+      window.removeEventListener("resize", handler);
+    };
   }, [tutorialStep, tutorialLoading]);
+
+  function nextTutorialStep() {
+    if (tutorialStep < tutorialSteps.length) {
+      setTutorialStep((s) => s + 1);
+    } else {
+      finishTutorial();
+    }
+  }
 
   // ---- Marcar tutorial como completado ----
   async function finishTutorial() {
@@ -235,7 +290,6 @@ export default function AdminBookings() {
   // ------------------ Cargar datos de reservas / clientes ------------------
 
   async function loadData(businessId: string) {
-    // 🔹 Bookings: filtramos por el negocio usando la columna de clients
     const { data: bookingsData, error: bookingsError } = await supabase
       .from("bookings")
       .select(
@@ -255,7 +309,6 @@ export default function AdminBookings() {
       console.error("Error cargando reservas:", bookingsError);
     }
 
-    // 🔹 Clientes solo de este negocio
     const { data: clientsData, error: clientsError } = await supabase
       .from("clients")
       .select("*")
@@ -265,7 +318,6 @@ export default function AdminBookings() {
       console.error("Error cargando clientes:", clientsError);
     }
 
-    // 🔹 Servicios (si luego les pones business_id, aquí también puedes filtrar)
     const { data: servicesData, error: servicesError } = await supabase
       .from("services")
       .select("*")
@@ -283,18 +335,18 @@ export default function AdminBookings() {
         created_at: String(b.created_at),
         clients: b.clients
           ? {
-            id: String(b.clients.id),
-            name: String(b.clients.name),
-            phone: String(b.clients.phone),
-            business_id: String(b.clients.business_id),
-          }
+              id: String(b.clients.id),
+              name: String(b.clients.name),
+              phone: String(b.clients.phone),
+              business_id: String(b.clients.business_id),
+            }
           : null,
         services: b.services
           ? {
-            id: String(b.services.id),
-            name: String(b.services.name),
-            price: Number(b.services.price),
-          }
+              id: String(b.services.id),
+              name: String(b.services.name),
+              price: Number(b.services.price),
+            }
           : null,
       })
     );
@@ -303,13 +355,6 @@ export default function AdminBookings() {
     setClients((clientsData as Client[]) || []);
     setServices((servicesData as Service[]) || []);
   }
-
-  // ------------------- Util: normalizar teléfono -------------------
-
-  /*function normalizePhone(phone: string): string {
-    const digits = phone.replace(/\D/g, "");
-    return digits;
-  }*/
 
   // ------------------- Crear cliente rápido usando bright-task -------------------
 
@@ -338,8 +383,6 @@ export default function AdminBookings() {
         return;
       }
 
-      console.log("Respuesta completa de bright-task:", data);
-
       if (!data?.client) {
         console.error("Respuesta inesperada de bright-task:", data);
         alert("❌ No se pudo crear el cliente (respuesta inválida).");
@@ -348,7 +391,6 @@ export default function AdminBookings() {
 
       const createdClient = data.client as Client;
 
-      // 👉 actualizar estado de React
       setClients((prev) => [...prev, createdClient]);
       setForm((prev) => ({
         ...prev,
@@ -357,23 +399,18 @@ export default function AdminBookings() {
       setNewClient({ name: "", phone: "" });
       setIsAddingClient(false);
 
-      // 👀 INFO SOBRE WHATSAPP
-      console.log("Resultado WhatsApp:", data.whatsapp);
-
       if (data.whatsapp?.ok) {
         alert(`✅ Cliente "${createdClient.name}" creado y WhatsApp enviado ✅`);
       } else {
         alert(
           `✅ Cliente "${createdClient.name}" creado.\n` +
-          `⚠️ Pero el WhatsApp no se pudo enviar automáticamente.`
+            `⚠️ Pero el WhatsApp no se pudo enviar automáticamente.`
         );
       }
     } finally {
       setCreatingClient(false);
     }
   }
-
-
 
   // ------------------- Crear nueva reserva -------------------
 
@@ -496,7 +533,7 @@ export default function AdminBookings() {
             {tutorialStep < tutorialSteps.length ? (
               <>
                 <button
-                  onClick={() => setTutorialStep(tutorialStep + 1)}
+                  onClick={nextTutorialStep}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
                 >
                   Siguiente →

@@ -1,6 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./LandingPeluqueria.css";
 import { supabase } from "../lib/supabase"; // misma ruta que en tu LoginForm
+
+// --------- Tipos para el tutorial ---------
+type TooltipPlacement = "top" | "bottom" | "left" | "right";
+
+interface TutorialStep {
+  id: number;
+  text: string;
+  highlightSelector: string;
+  placement: TooltipPlacement;
+}
+
+interface TooltipPosition {
+  top: number;
+  left: number;
+  transform: string;
+}
+
+// ------------------------------------------
 
 const LandingPeluqueria: React.FC = () => {
   const [form, setForm] = useState({
@@ -16,6 +34,161 @@ const LandingPeluqueria: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
 
+  // ---------- Estado del tutorial ----------
+  const [tutorialStep, setTutorialStep] = useState<number>(0);
+  const [tooltipPos, setTooltipPos] = useState<TooltipPosition | null>(null);
+
+  const tutorialSteps: TutorialStep[] = [
+    {
+      id: 1,
+      text: "Bienvenido 👋 Aquí ves el mensaje principal de tu landing. Es lo primero que leerán tus futuros clientes.",
+      highlightSelector: "#lp-hero-title",
+      placement: "bottom",
+    },
+    {
+      id: 2,
+      text: "Este formulario es donde puedes registrar tu peluquería.",
+      highlightSelector: "#cta",
+      placement: "left",
+    },
+    {
+      id: 3,
+      text: "Empieza por el nombre de la peluquería o barbería. Con esto generamos el código único del negocio.",
+      highlightSelector: "#business-name-field",
+      placement: "left", // queremos el tooltip a la izquierda del input
+    },
+    {
+      id: 4,
+      text: "Por último, completa email, contraseña y teléfono. Con este botón creamos la cuenta y el negocio automáticamente.",
+      highlightSelector: "#submit-btn",
+      placement: "top",
+    },
+  ];
+
+  // Mostrar el tutorial sólo la primera vez (localStorage)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = window.localStorage.getItem("landing_tutorial_done");
+    if (!seen) {
+      setTutorialStep(1);
+    }
+  }, []);
+
+  // ---- función para calcular posición del tooltip ----
+  const updateTooltipPosition = (stepIndex: number) => {
+    const stepDef = tutorialSteps[stepIndex];
+    if (!stepDef) return;
+
+    const el = document.querySelector(
+      stepDef.highlightSelector
+    ) as HTMLElement | null;
+
+    if (!el) {
+      setTooltipPos(null);
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
+    let top = 0;
+    let left = 0;
+    let transform = "translate(-50%, -50%)";
+
+    switch (stepDef.placement) {
+      case "bottom":
+        top = rect.bottom + 16;
+        left = rect.left + rect.width / 2;
+        transform = "translate(-50%, 0)";
+        break;
+      case "top":
+        top = rect.top - 16;
+        left = rect.left + rect.width / 2;
+        transform = "translate(-50%, -100%)";
+        break;
+      case "left":
+        top = rect.top + rect.height / 2;
+        left = rect.left - 16;
+        transform = "translate(-100%, -50%)";
+        break;
+      case "right":
+        top = rect.top + rect.height / 2;
+        left = rect.right + 16;
+        transform = "translate(0, -50%)";
+        break;
+    }
+
+    // límites para que no se salga de la pantalla
+    const margin = 16;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    top = Math.min(Math.max(top, margin), vh - margin);
+    left = Math.min(Math.max(left, margin), vw - margin);
+
+    setTooltipPos({ top, left, transform });
+  };
+
+  // 🔁 Calcular y actualizar posición del tooltip (incluye scroll/resize)
+  useEffect(() => {
+    if (tutorialStep === 0) {
+      setTooltipPos(null);
+      return;
+    }
+
+    const stepIndex = tutorialStep - 1;
+    const stepDef = tutorialSteps[stepIndex];
+    if (!stepDef) return;
+
+    const el = document.querySelector(
+      stepDef.highlightSelector
+    ) as HTMLElement | null;
+
+    // Scroll suave hacia el elemento del paso
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // después del scroll volvemos a calcular posición
+        setTimeout(() => {
+          updateTooltipPosition(stepIndex);
+        }, 300);
+      }, 0);
+    }
+
+    // cálculo inicial
+    updateTooltipPosition(stepIndex);
+
+    // volver a calcular en scroll / resize mientras el tutorial está activo
+    const handler = () => updateTooltipPosition(stepIndex);
+    window.addEventListener("scroll", handler);
+    window.addEventListener("resize", handler);
+
+    return () => {
+      window.removeEventListener("scroll", handler);
+      window.removeEventListener("resize", handler);
+    };
+  }, [tutorialStep]);
+
+  function nextTutorialStep() {
+    if (tutorialStep < tutorialSteps.length) {
+      setTutorialStep((s) => s + 1);
+    } else {
+      finishTutorial();
+    }
+  }
+
+  function finishTutorial() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("landing_tutorial_done", "1");
+    }
+    setTutorialStep(0);
+  }
+
+  function skipTutorial() {
+    finishTutorial();
+  }
+
+  // ---------- Lógica del formulario / registro ----------
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -27,7 +200,6 @@ const LandingPeluqueria: React.FC = () => {
 
   // 🔤 Generar code base: 3 letras del nombre + 3 números random
   const generateBusinessCode = (name: string): string => {
-    // limpiar nombre: sin acentos, sin espacios, solo letras
     const cleanName = name
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -52,16 +224,14 @@ const LandingPeluqueria: React.FC = () => {
 
       if (error) {
         console.error("Error validando código de negocio:", error);
-        break; // si falla la validación, salimos y devolvemos algo
+        break;
       }
 
-      // si no hay registros con ese code -> está libre
       if (!data || data.length === 0) {
         return code;
       }
     }
 
-    // fallback: devolvemos un code aunque no hayamos podido validar del todo
     return generateBusinessCode(name);
   };
 
@@ -70,7 +240,6 @@ const LandingPeluqueria: React.FC = () => {
     setLoading(true);
 
     try {
-      // 1) limpiar email
       let email = form.email
         .normalize("NFKC")
         .trim()
@@ -78,16 +247,12 @@ const LandingPeluqueria: React.FC = () => {
         .replace(/\s+/g, "")
         .replace(/["'<>]/g, "");
 
-      console.log("EMAIL RAW:", form.email);
-      console.log("EMAIL LIMPIO:", email);
-
       if (!email) {
         alert("Ingresa un correo válido.");
         setLoading(false);
         return;
       }
 
-      // 2) Crear el usuario en Supabase Auth
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email,
@@ -108,10 +273,8 @@ const LandingPeluqueria: React.FC = () => {
         return;
       }
 
-      // 3) Generar code único para el negocio
       const code = await getUniqueBusinessCode(form.businessName);
 
-      // 4) Crear el negocio en la tabla businesses
       const { error: businessError } = await supabase.from("businesses").insert([
         {
           name: form.businessName,
@@ -120,7 +283,7 @@ const LandingPeluqueria: React.FC = () => {
           owner_name: form.name,
           owner_id: user.id,
           phone: form.phone,
-          email, // email limpio
+          email,
           description: form.notes || null,
           code: code,
         },
@@ -135,21 +298,23 @@ const LandingPeluqueria: React.FC = () => {
         return;
       }
 
-      // 5) Iniciar sesión automáticamente (IMPORTANTE para que App.tsx muestre el Dashboard)
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password: form.password,
       });
 
       if (signInError) {
-        console.error("Error al iniciar sesión después del registro:", signInError);
-        alert(signInError.message || "No pudimos iniciar sesión automáticamente.");
+        console.error(
+          "Error al iniciar sesión después del registro:",
+          signInError
+        );
+        alert(
+          signInError.message || "No pudimos iniciar sesión automáticamente."
+        );
         setLoading(false);
         return;
       }
 
-
-      // Si llegamos aquí, ya hay sesión -> App.tsx debería mostrar Dashboard
       alert("¡Cuenta y negocio creados! Entrando a tu panel 💈");
 
       setForm({
@@ -170,10 +335,106 @@ const LandingPeluqueria: React.FC = () => {
     }
   };
 
-
-
   return (
     <div className="lp-root">
+      {/* ---------------- Tutorial overlay ---------------- */}
+      {tutorialStep > 0 && (
+        <>
+          {/* Fondo oscuro */}
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.55)",
+              zIndex: 9000,
+            }}
+          />
+
+          {/* Tooltip */}
+          <div
+            style={{
+              position: "fixed",
+              top: tooltipPos ? tooltipPos.top : "50%",
+              left: tooltipPos ? tooltipPos.left : "50%",
+              transform: tooltipPos
+                ? tooltipPos.transform
+                : "translate(-50%, -50%)",
+              background: "#ffffff",
+              padding: "1.5rem",
+              borderRadius: "0.9rem",
+              maxWidth: "28rem",
+              width: "90%",
+              textAlign: "center",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+              zIndex: 9002,
+            }}
+          >
+            <p
+              style={{
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                marginBottom: "1rem",
+              }}
+            >
+              {tutorialSteps[tutorialStep - 1].text}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "0.75rem",
+              }}
+            >
+              {tutorialStep < tutorialSteps.length ? (
+                <>
+                  <button
+                    onClick={nextTutorialStep}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+                  >
+                    Siguiente →
+                  </button>
+                  <button
+                    onClick={skipTutorial}
+                    className="text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  >
+                    Omitir
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={finishTutorial}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                  >
+                    Finalizar ✔
+                  </button>
+                  <button
+                    onClick={skipTutorial}
+                    className="text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-100"
+                  >
+                    Omitir
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Highlight dinámico */}
+          <style>
+            {`
+              ${tutorialSteps[tutorialStep - 1].highlightSelector} {
+                position: relative;
+                z-index: 9001 !important;
+                box-shadow: 0 0 0 4px #4f46e5;
+                border-radius: 12px;
+                transition: box-shadow 0.2s ease, transform 0.2s ease;
+              }
+            `}
+          </style>
+        </>
+      )}
+
       {/* NAV */}
       <header className="lp-header">
         <div className="lp-container lp-header-inner">
@@ -197,7 +458,7 @@ const LandingPeluqueria: React.FC = () => {
         <div className="lp-container lp-hero-grid">
           <div className="lp-hero-text">
             <p className="lp-badge">Prueba gratis, sin compromiso</p>
-            <h1>
+            <h1 id="lp-hero-title">
               El software de agenda online pensado para{" "}
               <span className="lp-highlight">peluquerías y barberías</span>
             </h1>
@@ -256,6 +517,7 @@ const LandingPeluqueria: React.FC = () => {
               <label className="lp-field">
                 Nombre de tu peluquería / barbería
                 <input
+                  id="business-name-field"
                   type="text"
                   name="businessName"
                   value={form.businessName}
@@ -311,16 +573,15 @@ const LandingPeluqueria: React.FC = () => {
               </label>
 
               <div className="lp-two-cols">
-                {/* Campo País eliminado por ahora */}
-
                 <label className="lp-field">
                   Teléfono / WhatsApp
                   <input
+                    id="phone-field"
                     type="tel"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
-                    placeholder="+56 9 1234 5678"
+                    placeholder="569 1234 5678"
                     required
                   />
                 </label>
@@ -329,6 +590,7 @@ const LandingPeluqueria: React.FC = () => {
               <label className="lp-field">
                 Email (será tu usuario)
                 <input
+                  id="email-field"
                   type="email"
                   name="email"
                   value={form.email}
@@ -341,6 +603,7 @@ const LandingPeluqueria: React.FC = () => {
               <label className="lp-field">
                 Contraseña
                 <input
+                  id="password-field"
                   type="password"
                   name="password"
                   value={form.password}
@@ -362,6 +625,7 @@ const LandingPeluqueria: React.FC = () => {
               </label>
 
               <button
+                id="submit-btn"
                 type="submit"
                 className="lp-btn-primary lp-btn-full"
                 disabled={loading}
@@ -378,7 +642,7 @@ const LandingPeluqueria: React.FC = () => {
         </div>
       </section>
 
-      {/* MÉTRICAS / TRUST */}
+      {/* RESTO IGUAL */}
       <section className="lp-metrics">
         <div className="lp-container lp-metrics-grid">
           <div>
@@ -396,7 +660,6 @@ const LandingPeluqueria: React.FC = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section id="features" className="lp-section">
         <div className="lp-container">
           <h2>¿Por qué usar PeluqPro en tu peluquería?</h2>
@@ -437,7 +700,6 @@ const LandingPeluqueria: React.FC = () => {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section id="how-it-works" className="lp-section lp-section-alt">
         <div className="lp-container">
           <h2>¿Cómo hacemos crecer tu peluquería?</h2>
@@ -466,7 +728,6 @@ const LandingPeluqueria: React.FC = () => {
         </div>
       </section>
 
-      {/* TESTIMONIAL */}
       <section id="testimonials" className="lp-section">
         <div className="lp-container lp-testimonial">
           <h2>Lo que opinan nuestros clientes</h2>
@@ -481,12 +742,11 @@ const LandingPeluqueria: React.FC = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
           <p>
-            PeluqPro © {new Date().getFullYear()} - Agenda online para peluquerías y
-            barberías
+            PeluqPro © {new Date().getFullYear()} - Agenda online para
+            peluquerías y barberías
           </p>
           <p className="lp-footer-small">
             Hecho para que dejes de mirar el celular y vuelvas a cortar pelo 😎
