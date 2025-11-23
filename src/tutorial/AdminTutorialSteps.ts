@@ -130,19 +130,33 @@ export const adminTutorialSteps: TutorialStep[] = [
   {
     id: 17,
     route: "/app/clients",
-    text: "Este bloque es para crear o editar un cliente.",
-    highlightSelector: "#clients-form",
+    text: "Completa nombre y teléfono del cliente en este bloque.",
+    highlightSelector: "#clients-form-name",
     placement: "bottom",
   },
   {
     id: 18,
+    route: "/app/clients",
+    text: "Genial. Aqui podras crer un cliente.",
+    highlightSelector: "#client-create-button",
+    placement: "top",
+  },
+  {
+    id: 19,
     route: "/app/clients",
     text: "En esta tabla tienes la lista de clientes, con su información básica.",
     highlightSelector: "#clients-table",
     placement: "top",
   },
   {
-    id: 19,
+    id: 20,
+    route: "/app/clients",
+    text: "Genial. Ahora abre el menú lateral para continuar con las Reservas.",
+    highlightSelector: "#sidebar-toggle",
+    placement: "right-bottom",
+  },
+  {
+    id: 21,
     route: "/app/clients",
     text: "Cuando estés listo, abre 'Bookings' en el menú lateral.",
     highlightSelector: "#sidebar-bookings",
@@ -151,21 +165,21 @@ export const adminTutorialSteps: TutorialStep[] = [
 
   // ---------- BOOKINGS ----------
   {
-    id: 21,
+    id: 22,
     route: "/app/bookings",
     text: "Este es tu panel de reservas. Aquí ves todas las citas.",
     highlightSelector: "#title", // ya lo tienes en AdminBookings
     placement: "bottom",
   },
   {
-    id: 22,
+    id: 23,
     route: "/app/bookings",
     text: "Aquí creas una nueva reserva manualmente: cliente, servicio y fecha.",
     highlightSelector: "#add-booking",
     placement: "bottom",
   },
   {
-    id: 23,
+    id: 25,
     route: "/app/bookings",
     text: "En esta tabla ves el detalle de cada reserva y puedes cambiar su estado.",
     highlightSelector: "#bookings-table",

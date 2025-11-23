@@ -180,6 +180,8 @@ export default function ClientManager() {
       setSuccess("Cliente creado correctamente ✅");
       setForm(initialForm);
 
+      window.dispatchEvent(new Event("admin-tutorial-next"));
+
       // Volver a cargar solo clientes de ESTE negocio
       await reloadClientsForBusiness(business.id);
     } catch (requestError: any) {
@@ -217,7 +219,7 @@ export default function ClientManager() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+            <h2 id="clients-title" className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
               <UserRound className="w-6 h-6 text-indigo-600" />
               Mantenedor de Clientes
             </h2>
@@ -239,8 +241,8 @@ export default function ClientManager() {
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4"
-        >
-          <div className="flex flex-col">
+        > 
+          <div id="clients-form-name" className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-1">
               Nombre
             </label>
@@ -253,7 +255,7 @@ export default function ClientManager() {
             />
           </div>
 
-          <div className="flex flex-col">
+          <div id="clients-form-phone" className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-1">
               Teléfono
             </label>
@@ -268,6 +270,7 @@ export default function ClientManager() {
 
           <div className="flex items-end">
             <button
+              id="client-create-button"
               type="submit"
               disabled={loading}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all disabled:bg-indigo-300"
@@ -322,7 +325,7 @@ export default function ClientManager() {
             usando el formulario superior.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-gray-200">
+          <div id="clients-table" className="overflow-hidden rounded-xl border border-gray-200">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

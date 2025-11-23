@@ -235,8 +235,8 @@ const AdminGlobalTutorial: React.FC = () => {
         : "translate(-50%, -50%)";
 
     // 👈 Paso específico del botón del menú lateral (ajusta el id si cambiaste)
-    const SIDEBAR_TOGGLE_IDS = [8, 14];
-    const SIDEBAR_OPTION_IDS = [9, 15, 19];
+    const SIDEBAR_TOGGLE_IDS = [8, 14, 20];
+    const SIDEBAR_OPTION_IDS = [9, 15, 21];
 
     const isSidebarStep = SIDEBAR_TOGGLE_IDS.includes(currentStep.id);
     const isBarbersMenuStep = SIDEBAR_OPTION_IDS.includes(currentStep.id);
@@ -458,6 +458,35 @@ const AdminGlobalTutorial: React.FC = () => {
     `
                         : ""
                     }
+    /* 🟢 Estilo especial para el formulario de clientes (nombre + teléfono) */
+${currentStep.highlightSelector === "#clients-form-name"
+                        ? `
+    #clients-form-name,
+    #clients-form-phone {
+      position: relative;
+      z-index: 9001 !important;
+      background: #ffffff !important;
+      box-shadow:
+        0 0 0 4px #4f46e5,
+        0 0 22px rgba(79,70,229,0.7) !important;
+      border-radius: 12px;
+    }
+
+    #clients-form-name::after,
+    #clients-form-phone::after {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 12px;
+      box-shadow:
+        0 0 0 1px rgba(129,140,248,0.8),
+        0 0 24px rgba(79,70,229,0.9);
+      pointer-events: none;
+    }
+  `
+                        : ""
+                    }
+
   `}
             </style>
 
