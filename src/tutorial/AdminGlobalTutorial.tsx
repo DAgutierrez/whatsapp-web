@@ -235,8 +235,11 @@ const AdminGlobalTutorial: React.FC = () => {
         : "translate(-50%, -50%)";
 
     // 👈 Paso específico del botón del menú lateral (ajusta el id si cambiaste)
-    const isSidebarStep = currentStep.id === 8;
-    const isBarbersMenuStep = currentStep.id === 9;
+    const SIDEBAR_TOGGLE_IDS = [8, 14];
+    const SIDEBAR_OPTION_IDS = [9, 15, 19];
+
+    const isSidebarStep = SIDEBAR_TOGGLE_IDS.includes(currentStep.id);
+    const isBarbersMenuStep = SIDEBAR_OPTION_IDS.includes(currentStep.id);
 
     return (
         <>
@@ -395,10 +398,10 @@ const AdminGlobalTutorial: React.FC = () => {
                         : ""
                     }
 
-  /* ⭐ Sidebar: Barbers / Clients / Bookings (lo que ya tenías) */
-  ${currentStep.highlightSelector === "#sidebar-barbers" ||
-                        currentStep.highlightSelector === "#sidebar-clients" ||
-                        currentStep.highlightSelector === "#sidebar-bookings"
+    /* ⭐ Sidebar: Bookings / Barbers / Clients bien iluminados */
+  ${["#sidebar-barbers", "#sidebar-clients", "#sidebar-bookings"].includes(
+                        currentStep.highlightSelector
+                    )
                         ? `
     #admin-sidebar-nav::before {
       content: '';
@@ -411,23 +414,48 @@ const AdminGlobalTutorial: React.FC = () => {
 
     ${currentStep.highlightSelector} {
       position: relative;
-      z-index: 9001 !important;
+      z-index: 9002 !important;
       background: #ffffff !important;
       color: #1f2937 !important;
-      box-shadow:
-        0 0 0 2px #4f46e5,
-        0 0 18px rgba(79,70,229,0.9) !important;
       border-radius: 12px;
+      box-shadow:
+        0 0 0 3px #4f46e5,
+        0 0 16px rgba(79,70,229,1),
+        0 0 28px rgba(79,70,229,0.9);
     }
 
     ${currentStep.highlightSelector}::after {
-      inset: -4px;
-      border-radius: 12px;
+      inset: -6px;
+      border-radius: 14px;
       box-shadow:
-        0 0 0 1px rgba(129,140,248,0.8),
-        0 0 24px rgba(79,70,229,1);
+        0 0 0 1px rgba(129,140,248,1),
+        0 0 28px rgba(79,70,229,0.8);
     }
   `
+                        : ""
+                    }
+
+
+    /* 🟣 Estilo ESPECIAL SOLO para el formulario de barberos */
+  ${currentStep.highlightSelector === "#barbers-form"
+                        ? `
+      #barbers-form {
+        padding: 12px;
+        border-radius: 14px;
+        background: #ffffff !important;
+        box-shadow:
+          0 0 0 4px #4f46e5,
+          0 0 22px rgba(79,70,229,0.7);
+      }
+
+      #barbers-form::after {
+        inset: -8px;
+        border-radius: 16px;
+        box-shadow:
+          0 0 0 2px rgba(129,140,248,0.7),
+          0 0 30px rgba(79,70,229,0.6);
+      }
+    `
                         : ""
                     }
   `}

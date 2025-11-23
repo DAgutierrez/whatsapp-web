@@ -197,6 +197,9 @@ export default function BarberManager() {
             } else {
                 await reloadBarbers();
             }
+
+            window.dispatchEvent(new Event("admin-tutorial-next"));
+
         } catch (requestError: any) {
             console.error(requestError);
             setSuccess(null);
@@ -281,7 +284,7 @@ export default function BarberManager() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
+                        <h2 id="barbers-title" className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
                             <Scissors className="w-6 h-6 text-indigo-600" />
                             Mantenedor de Barberos
                         </h2>
@@ -304,7 +307,7 @@ export default function BarberManager() {
                     onSubmit={handleSubmit}
                     className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end"
                 >
-                    <div className="flex flex-col">
+                    <div id="barbers-form" className="flex flex-col">
                         <label className="text-sm font-medium text-gray-700 mb-1">
                             Nombre del barbero
                         </label>
@@ -328,6 +331,7 @@ export default function BarberManager() {
 
                     <div className="flex items-end">
                         <button
+                            id="barber-create-button"
                             type="submit"
                             disabled={loading}
                             className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all disabled:bg-indigo-300"
@@ -362,7 +366,7 @@ export default function BarberManager() {
             </div>
 
             {/* Tabla de barberos */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            <div id="barbers-table" className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-gray-900">
                         Barberos registrados
