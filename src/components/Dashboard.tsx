@@ -1,22 +1,23 @@
-import React, { useState, useEffect  } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from '../lib/supabase';
 import ListaChat from './ListaChats';
+import AdminGlobalTutorial from '../tutorial/AdminGlobalTutorial';
 // @ts-ignore - componente legado en JSX sin tipado
 import AdminBookings from "./AdminBookings";
-import LandingPeluqueria from './LandingPeluqueria';
 import BarberManager from './BarbersManager';
 import ServiceManager from './ServiceManager';
 import { GiRazor, GiBeard, GiHairStrands, GiComb } from "react-icons/gi";
 
 //import { io } from "socket.io-client";
-import { 
-  Home, 
-  User, 
-  Settings, 
-  FileText, 
-  BarChart3, 
-  LogOut, 
-  Menu, 
+import {
+  Home,
+  User,
+  Settings,
+  FileText,
+  BarChart3,
+  LogOut,
+  Menu,
   X,
   Bell,
   Search,
@@ -35,14 +36,18 @@ import ClientManager from './ClientManager';
 
 // const socket = io(import.meta.env.VITE_BACKEND_URL || "https://backendbot-fof9.onrender.com");
 
+
 interface DashboardProps {
   user: any;
   onLogout: () => void;
 }
 
 export default function Dashboard({ user, onLogout }: DashboardProps) {
-  const [activeSection, setActiveSection] = useState('home');
+  const [activeSection, setActiveSection] = useState('Services');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { section } = useParams<{ section?: string }>();
+  const navigate = useNavigate();
+
 
   // useEffect(() => {
   //   if (user?.email) {
@@ -57,15 +62,15 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   };
 
   const menuSections = [
-    {
+    /*{
       title: 'Principal',
       items: [
-        { id: 'home', label: 'Dashboard', icon: Home, badge: null },
+        // { id: 'home', label: 'Dashboard', icon: Home, badge: null },
         // { id: 'analytics', label: 'Análisis', icon: BarChart3, badge: 'Pro' },
         // { id: 'calendar', label: 'Calendario', icon: Calendar, badge: null },
         // { id: 'chats', label: 'Chats', icon: MessageSquare, badge: '5' },
       ]
-    },
+    },*/
     {
       title: 'Gestión',
       items: [
@@ -91,6 +96,26 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
     }
   ];
 
+  const idToPath: Record<string, string> = {
+    Bookings: "bookings",
+    Services: "services",
+    Barbers: "barbers",
+    clients: "clients",
+    profile: "profile",
+  };
+
+  useEffect(() => {
+    switch (section) {
+      case "bookings": setActiveSection("Bookings"); break;
+      case "services": setActiveSection("Services"); break;
+      case "barbers": setActiveSection("Barbers"); break;
+      case "clients": setActiveSection("clients"); break;
+      case "profile": setActiveSection("profile"); break;
+      default: setActiveSection("Services");
+    }
+  }, [section]);
+
+
   const renderContent = () => {
     switch (activeSection) {
       case 'home':
@@ -113,7 +138,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <span>+12% este mes</span>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Documentos</h3>
@@ -126,7 +151,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   <span>+5 nuevos</span>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">Actividad</h3>
@@ -140,7 +165,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Actividad Reciente</h2>
               <div className="space-y-4">
@@ -203,9 +228,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Chats</h1>
               <p className="text-gray-600">Gestiona tus conversaciones con clientes</p>
             </div>
-            
+
             <div>
-              <ListaChat currentAdmin={user.email}/>
+              <ListaChat currentAdmin={user.email} />
             </div>
           </div>
         );
@@ -237,7 +262,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           <div>
             <ClientManager />
           </div>
-        );  
+        );
       case 'Barbers':
         return (
           <div>
@@ -323,7 +348,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out`}>
+      <div id="admin-sidebar-nav" className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out flex flex-col`}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-purple-600">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
@@ -338,7 +363,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             <X className="w-6 h-6" />
           </button>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto">
           <nav className="px-4 py-6 space-y-8">
             {menuSections.map((section) => (
@@ -352,44 +377,71 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     return (
                       <button
                         key={item.id}
+                        // 👇 aquí ponemos los ids que usan tus pasos del tutorial
+                        id={
+                          item.id === "Barbers"
+                            ? "sidebar-barbers"
+                            : item.id === "clients"
+                              ? "sidebar-clients"
+                              : item.id === "Bookings"
+                                ? "sidebar-bookings"
+                                : undefined
+                        }
                         onClick={() => {
                           setSidebarOpen(false);
+
                           if (item.action) {
                             item.action();
                           } else {
                             setActiveSection(item.id);
+                            const slug = idToPath[item.id as keyof typeof idToPath];
+                            if (slug) {
+                              navigate(`/app/${slug}`);
+                            } else {
+                              navigate("/app");
+                            }
+                          }
+
+                          // 👇 esto hace que el tutorial avance cuando el usuario
+                          // haga clic en las opciones que forman parte del flujo
+                          if (item.id === "Barbers" || item.id === "clients" || item.id === "Bookings") {
+                            window.dispatchEvent(new Event("admin-tutorial-next"));
                           }
                         }}
-                        className={`w-full flex items-center justify-between px-3 py-3 rounded-xl text-left transition-all duration-200 group ${
-                          activeSection === item.id
-                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm border border-indigo-100'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                        className={`w-full flex items-center justify-between px-3 py-3 rounded-xl text-left transition-all duration-200 group ${activeSection === item.id
+                          ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm border border-indigo-100"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
                       >
                         <div className="flex items-center space-x-3">
-                          <Icon className={`w-5 h-5 transition-colors ${
-                            activeSection === item.id ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-600'
-                          }`} />
+                          <Icon
+                            className={`w-5 h-5 transition-colors ${activeSection === item.id
+                              ? "text-indigo-600"
+                              : "text-gray-400 group-hover:text-gray-600"
+                              }`}
+                          />
                           <span className="font-medium">{item.label}</span>
                         </div>
                         {item.badge && (
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            item.badge === 'Pro' 
-                              ? 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${item.badge === "Pro"
+                              ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700"
+                              : "bg-gray-100 text-gray-600"
+                              }`}
+                          >
                             {item.badge}
                           </span>
                         )}
                       </button>
                     );
                   })}
+
                 </div>
               </div>
             ))}
           </nav>
         </div>
-        
+
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center space-x-3 px-3 py-2 mb-3">
             <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -402,27 +454,45 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               <p className="text-xs text-gray-500">Usuario activo</p>
             </div>
           </div>
-          
-          <button className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200 group">
+
+          {/*<button className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-600 hover:bg-gray-50 transition-all duration-200 group">
             <HelpCircle className="w-5 h-5 group-hover:text-gray-700" />
             <span className="font-medium">Ayuda</span>
-          </button>
+          </button>*/}
         </div>
       </div>
 
       {/* Main Content */}
       <div className={`transition-all duration-300 ease-in-out ${sidebarOpen ? 'ml-72' : 'ml-0'}`}>
         {/* Header */}
-        <header className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-30">
+        <header id="admin-header" className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
+                id="sidebar-toggle"
+                onClick={() => {
+                  // 1) Abrir / cerrar el sidebar
+                  setSidebarOpen((prev) => {
+                    const next = !prev;
+
+                    // Esperamos a que termine la animación del sidebar
+                    // y forzamos un "resize" para que el tutorial recalcule la posición
+                    setTimeout(() => {
+                      window.dispatchEvent(new Event("resize"));
+                    }, 320); // igual que tu duration-300 aprox
+
+                    return next;
+                  });
+
+                  // 2) Avisar al tutorial que avance al siguiente paso
+                  window.dispatchEvent(new Event("admin-tutorial-next"));
+                }}
                 className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
                 <Menu className="w-5 h-5" />
               </button>
-              
+
+
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
                   {(() => {
@@ -433,7 +503,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 </h1>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -443,12 +513,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
                 />
               </div>
-              
+
               <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all">
                 <Bell className="w-5 h-5" />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
               </button>
-              
+
               <div className="w-8 h-8 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full flex items-center justify-center ring-2 ring-indigo-100">
                 <User className="w-5 h-5 text-indigo-600" />
               </div>
@@ -460,13 +530,16 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <main className="p-4 lg:p-6 max-w-7xl mx-auto">
           {renderContent()}
         </main>
+        {/* Tutorial global */}
+        <AdminGlobalTutorial />
+
       </div>
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => setSidebarOpen(false)} 
         ></div>
       )}
     </div>

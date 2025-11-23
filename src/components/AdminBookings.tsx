@@ -30,21 +30,6 @@ interface Business {
   tutorial_completed: boolean;
 }
 
-type TooltipPlacement = "top" | "bottom" | "left" | "right";
-
-interface TutorialStep {
-  id: number;
-  text: string;
-  highlightSelector: string;
-  placement: TooltipPlacement;
-}
-
-interface TooltipPosition {
-  top: number;
-  left: number;
-  transform: string;
-}
-
 // -----------------------------------------------------
 
 export default function AdminBookings() {
@@ -62,51 +47,21 @@ export default function AdminBookings() {
 
   // ---- NUEVO: estado para crear cliente rápido ----
   const [isAddingClient, setIsAddingClient] = useState(false);
-  const [newClient, setNewClient] = useState<{ name: string; phone: string }>({
-    name: "",
-    phone: "",
-  });
+  const [newClient, setNewClient] = useState<{ name: string; phone: string }>(
+    {
+      name: "",
+      phone: "",
+    }
+  );
   const [creatingClient, setCreatingClient] = useState(false);
 
-  // ---- NEGOCIO / TUTORIAL ----
+  // ---- NEGOCIO (solo para filtrar datos, sin tutorial aquí) ----
   const [business, setBusiness] = useState<Business | null>(null);
-  const [tutorialStep, setTutorialStep] = useState<number>(0);
-  const [tutorialLoading, setTutorialLoading] = useState<boolean>(true);
-  const [tooltipPos, setTooltipPos] = useState<TooltipPosition | null>(null);
-
-  const tutorialSteps: TutorialStep[] = [
-    {
-      id: 1,
-      text: "Bienvenido 👋 Este es tu panel de reservas. Aquí verás todas las citas de tus clientes.",
-      highlightSelector: "#title",
-      placement: "bottom",
-    },
-    {
-      id: 2,
-      text: "Aquí puedes agregar nuevas reservas manualmente si un cliente te escribe por WhatsApp o te llama.",
-      highlightSelector: "#add-booking",
-      placement: "bottom",
-    },
-    {
-      id: 3,
-      text: "En esta tabla verás todas las reservas: quién viene, qué servicio se hará y cuándo.",
-      highlightSelector: "#bookings-table",
-      placement: "top",
-    },
-    {
-      id: 4,
-      text: "En estas acciones puedes marcar una reserva como completada, cancelarla o eliminarla si fue un error.",
-      highlightSelector: ".booking-actions",
-      placement: "left",
-    },
-  ];
 
   // ---- Cargar negocio asociado al usuario ----
   useEffect(() => {
     async function loadBusinessForUser() {
       try {
-        setTutorialLoading(true);
-
         const {
           data: { user },
           error: userError,
@@ -114,7 +69,6 @@ export default function AdminBookings() {
 
         if (userError || !user) {
           console.error("Error obteniendo usuario:", userError);
-          setTutorialLoading(false);
           return;
         }
 
@@ -125,7 +79,6 @@ export default function AdminBookings() {
 
         if (businessError) {
           console.error("Error obteniendo negocio:", businessError);
-          setTutorialLoading(false);
           return;
         }
 
@@ -136,15 +89,9 @@ export default function AdminBookings() {
 
         if (businessData) {
           setBusiness(businessData);
-          if (businessData.tutorial_completed === false) {
-            setTutorialStep(1); // 👉 empieza tutorial
-          }
         }
-
-        setTutorialLoading(false);
       } catch (err) {
         console.error("Error inesperado:", err);
-        setTutorialLoading(false);
       }
     }
 
@@ -157,135 +104,6 @@ export default function AdminBookings() {
       loadData(business.id);
     }
   }, [business]);
-
-  // ---------- FUNCIONES DE TOOLTIP / SCROLL ----------
-
-  const updateTooltipPosition = (stepIndex: number) => {
-    const stepDef = tutorialSteps[stepIndex];
-    if (!stepDef) return;
-
-    const el = document.querySelector(
-      stepDef.highlightSelector
-    ) as HTMLElement | null;
-
-    if (!el) {
-      setTooltipPos(null);
-      return;
-    }
-
-    const rect = el.getBoundingClientRect();
-    let top = 0;
-    let left = 0;
-    let transform = "translate(-50%, -50%)";
-
-    switch (stepDef.placement) {
-      case "bottom":
-        top = rect.bottom + 16;
-        left = rect.left + rect.width / 2;
-        transform = "translate(-50%, 0)";
-        break;
-      case "top":
-        top = rect.top - 16;
-        left = rect.left + rect.width / 2;
-        transform = "translate(-50%, -100%)";
-        break;
-      case "left":
-        top = rect.top + rect.height / 2;
-        left = rect.left - 16;
-        transform = "translate(-100%, -50%)";
-        break;
-      case "right":
-        top = rect.top + rect.height / 2;
-        left = rect.right + 16;
-        transform = "translate(0, -50%)";
-        break;
-      default:
-        top = window.innerHeight / 2;
-        left = window.innerWidth / 2;
-        transform = "translate(-50%, -50%)";
-    }
-
-    // Limitar para que no se salga de pantalla
-    const margin = 16;
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    top = Math.min(Math.max(top, margin), vh - margin);
-    left = Math.min(Math.max(left, margin), vw - margin);
-
-    setTooltipPos({ top, left, transform });
-  };
-
-  // ---- Calcular posición del tooltip + hacer scroll al paso ----
-  useEffect(() => {
-    if (tutorialStep <= 0 || tutorialLoading) {
-      setTooltipPos(null);
-      return;
-    }
-
-    const stepIndex = tutorialStep - 1;
-    const stepDef = tutorialSteps[stepIndex];
-    if (!stepDef) return;
-
-    const el = document.querySelector(
-      stepDef.highlightSelector
-    ) as HTMLElement | null;
-
-    if (el) {
-      // Scroll suave hacia el elemento del paso
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-
-        // Recalcular posición después del scroll
-        setTimeout(() => {
-          updateTooltipPosition(stepIndex);
-        }, 300);
-      }, 0);
-    }
-
-    // Cálculo inicial (por si ya está en pantalla)
-    updateTooltipPosition(stepIndex);
-
-    const handler = () => updateTooltipPosition(stepIndex);
-    window.addEventListener("scroll", handler);
-    window.addEventListener("resize", handler);
-
-    return () => {
-      window.removeEventListener("scroll", handler);
-      window.removeEventListener("resize", handler);
-    };
-  }, [tutorialStep, tutorialLoading]);
-
-  function nextTutorialStep() {
-    if (tutorialStep < tutorialSteps.length) {
-      setTutorialStep((s) => s + 1);
-    } else {
-      finishTutorial();
-    }
-  }
-
-  // ---- Marcar tutorial como completado ----
-  async function finishTutorial() {
-    if (!business?.id) {
-      setTutorialStep(0);
-      return;
-    }
-
-    const { error } = await supabase
-      .from("businesses")
-      .update({ tutorial_completed: true })
-      .eq("id", business.id);
-
-    if (error) {
-      console.error("Error finalizando tutorial:", error);
-    }
-
-    setTutorialStep(0);
-  }
-
-  function skipTutorial() {
-    finishTutorial();
-  }
 
   // ------------------ Cargar datos de reservas / clientes ------------------
 
@@ -356,7 +174,7 @@ export default function AdminBookings() {
     setServices((servicesData as Service[]) || []);
   }
 
-  // ------------------- Crear cliente rápido usando bright-task -------------------
+  // ------------------- Crear cliente rápido -------------------
 
   async function handleCreateClient() {
     if (!newClient.name.trim() || !newClient.phone.trim()) {
@@ -452,7 +270,7 @@ export default function AdminBookings() {
     }
   }
 
-  // ------------------- Eliminar reserva -------------------
+  // ------------------- Eliminar / actualizar -------------------
 
   async function handleDelete(id: string) {
     if (!window.confirm("¿Seguro que deseas eliminar esta reserva?")) return;
@@ -462,8 +280,6 @@ export default function AdminBookings() {
     if (error) alert("Error eliminando reserva: " + error.message);
     else if (business?.id) loadData(business.id);
   }
-
-  // ------------------- Cambiar estado -------------------
 
   async function handleStatus(id: string, newStatus: string) {
     const { error } = await supabase
@@ -475,112 +291,10 @@ export default function AdminBookings() {
     else if (business?.id) loadData(business.id);
   }
 
-  // -----------------------------------------------------------
   // ------------------------- RENDER ---------------------------
-  // -----------------------------------------------------------
 
   return (
     <div className="relative p-6 max-w-5xl mx-auto">
-      {/* Fondo oscuro del tutorial */}
-      {tutorialStep > 0 && !tutorialLoading && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            zIndex: 9000,
-          }}
-        />
-      )}
-
-      {/* Tooltip del tutorial */}
-      {tutorialStep > 0 && !tutorialLoading && (
-        <div
-          style={{
-            position: "fixed",
-            top: tooltipPos ? tooltipPos.top : "50%",
-            left: tooltipPos ? tooltipPos.left : "50%",
-            transform: tooltipPos
-              ? tooltipPos.transform
-              : "translate(-50%, -50%)",
-            background: "#ffffff",
-            padding: "1.5rem",
-            borderRadius: "0.75rem",
-            maxWidth: "28rem",
-            width: "90%",
-            textAlign: "center",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-            zIndex: 9002,
-          }}
-        >
-          <p
-            style={{
-              fontSize: "1.125rem",
-              fontWeight: 600,
-              marginBottom: "1rem",
-            }}
-          >
-            {tutorialSteps[tutorialStep - 1].text}
-          </p>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: "0.75rem",
-            }}
-          >
-            {tutorialStep < tutorialSteps.length ? (
-              <>
-                <button
-                  onClick={nextTutorialStep}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                >
-                  Siguiente →
-                </button>
-                <button
-                  onClick={skipTutorial}
-                  className="text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-100"
-                >
-                  Omitir
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={finishTutorial}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                >
-                  Finalizar ✔
-                </button>
-                <button
-                  onClick={skipTutorial}
-                  className="text-gray-500 px-3 py-2 rounded-lg hover:bg-gray-100"
-                >
-                  Omitir
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Highlight dinámico */}
-      {tutorialStep > 0 && !tutorialLoading && (
-        <style>
-          {`
-            ${tutorialSteps[tutorialStep - 1].highlightSelector} {
-              position: relative;
-              z-index: 9001;
-              box-shadow: 0 0 0 4px #3b82f6;
-              border-radius: 12px;
-              transition: box-shadow 0.2s ease, transform 0.2s ease;
-            }
-          `}
-        </style>
-      )}
-
-      {/* ----------------- Título ----------------- */}
       <h2 id="title" className="text-3xl font-bold mb-6">
         📅 Panel de Reservas
       </h2>

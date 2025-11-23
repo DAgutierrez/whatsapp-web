@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Mail, Lock, Eye, EyeOff, LogIn } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 interface LoginFormProps {
   onLogin: () => void;
@@ -13,6 +14,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,11 +119,12 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => navigate("/")}
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
-            {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+            ¿No tienes cuenta? Regístrate
           </button>
+
         </div>
       </div>
     </div>
