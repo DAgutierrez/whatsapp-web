@@ -292,7 +292,7 @@ const AdminGlobalTutorial: React.FC = () => {
                 </p>
 
                 {/* En el paso del menú lateral NO mostramos botones, solo el mensaje */}
-                {!isSidebarStep && (
+                {!isSidebarStep && !isBarbersMenuStep &&(
                     <div
                         style={{
                             display: "flex",
@@ -449,6 +449,93 @@ const AdminGlobalTutorial: React.FC = () => {
       }
 
       #barbers-form::after {
+        inset: -8px;
+        border-radius: 16px;
+        box-shadow:
+          0 0 0 2px rgba(129,140,248,0.7),
+          0 0 30px rgba(79,70,229,0.6);
+      }
+    `
+                        : ""
+                    }
+
+    ${currentStep.highlightSelector === "#services-title"
+                        ? `
+      #services-title {
+        padding: 12px;
+        border-radius: 14px;
+        background: #ffffff !important;
+        box-shadow:
+          0 0 0 4px #4f46e5,
+          0 0 22px rgba(79,70,229,0.7);
+      }
+
+      #services-title::after {
+        inset: -8px;
+        border-radius: 16px;
+        box-shadow:
+          0 0 0 2px rgba(129,140,248,0.7),
+          0 0 30px rgba(79,70,229,0.6);
+      }
+    `
+                        : ""
+                    }
+
+    ${currentStep.highlightSelector === "#barbers-title"
+                        ? `
+      #barbers-title {
+        padding: 12px;
+        border-radius: 14px;
+        background: #ffffff !important;
+        box-shadow:
+          0 0 0 4px #4f46e5,
+          0 0 22px rgba(79,70,229,0.7);
+      }
+
+      #barbers-title::after {
+        inset: -8px;
+        border-radius: 16px;
+        box-shadow:
+          0 0 0 2px rgba(129,140,248,0.7),
+          0 0 30px rgba(79,70,229,0.6);
+      }
+    `
+                        : ""
+                    }
+
+    ${currentStep.highlightSelector === "#clients-title"
+                        ? `
+      #clients-title {
+        padding: 12px;
+        border-radius: 14px;
+        background: #ffffff !important;
+        box-shadow:
+          0 0 0 4px #4f46e5,
+          0 0 22px rgba(79,70,229,0.7);
+      }
+
+      #clients-title::after {
+        inset: -8px;
+        border-radius: 16px;
+        box-shadow:
+          0 0 0 2px rgba(129,140,248,0.7),
+          0 0 30px rgba(79,70,229,0.6);
+      }
+    `
+                        : ""
+                    }
+    ${currentStep.highlightSelector === "#title"
+                        ? `
+      #title {
+        padding: 12px;
+        border-radius: 14px;
+        background: #ffffff !important;
+        box-shadow:
+          0 0 0 4px #4f46e5,
+          0 0 22px rgba(79,70,229,0.7);
+      }
+
+      #title::after {
         inset: -8px;
         border-radius: 16px;
         box-shadow:

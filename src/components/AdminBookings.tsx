@@ -310,6 +310,7 @@ export default function AdminBookings() {
         {/* Select de clientes + opción Añadir nuevo */}
         <div>
           <select
+            id="new-client"
             className="p-2 border rounded w-full"
             value={form.client_id || (isAddingClient ? "__new__" : "")}
             onChange={(e) => {
@@ -361,7 +362,7 @@ export default function AdminBookings() {
               >
                 {creatingClient
                   ? "Creando..."
-                  : "Crear cliente y enviar WhatsApp"}
+                  : "Crear cliente"}
               </button>
             </div>
           )}
@@ -369,6 +370,7 @@ export default function AdminBookings() {
 
         {/* Select de servicios */}
         <select
+          id="new-service"
           className="p-2 border rounded"
           value={form.service_id}
           onChange={(e) =>
@@ -387,6 +389,7 @@ export default function AdminBookings() {
         </select>
 
         <input
+          id="new-date"
           type="datetime-local"
           className="p-2 border rounded"
           value={form.date}
@@ -399,6 +402,7 @@ export default function AdminBookings() {
         />
 
         <button
+          id="booking-add-button"
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white rounded py-2 font-medium transition"
           disabled={loading}
