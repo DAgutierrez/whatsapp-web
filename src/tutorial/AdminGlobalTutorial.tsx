@@ -235,11 +235,14 @@ const AdminGlobalTutorial: React.FC = () => {
         : "translate(-50%, -50%)";
 
     // 👈 Paso específico del botón del menú lateral (ajusta el id si cambiaste)
-    const SIDEBAR_TOGGLE_IDS = [8, 14, 20];
-    const SIDEBAR_OPTION_IDS = [9, 15, 21];
+    const SIDEBAR_TOGGLE_IDS = [8, 14, 21];
+    const SIDEBAR_OPTION_IDS = [9, 15, 22];
+    const WHITHOUT_BUTTON_IDS=[6, 12, 19, 27]; // pasos sin botones (solo mensaje)
 
     const isSidebarStep = SIDEBAR_TOGGLE_IDS.includes(currentStep.id);
     const isBarbersMenuStep = SIDEBAR_OPTION_IDS.includes(currentStep.id);
+    const ButtonStep = WHITHOUT_BUTTON_IDS.includes(currentStep.id);
+
 
     return (
         <>
@@ -292,7 +295,7 @@ const AdminGlobalTutorial: React.FC = () => {
                 </p>
 
                 {/* En el paso del menú lateral NO mostramos botones, solo el mensaje */}
-                {!isSidebarStep && !isBarbersMenuStep &&(
+                {!isSidebarStep && !isBarbersMenuStep && !ButtonStep &&(
                     <div
                         style={{
                             display: "flex",

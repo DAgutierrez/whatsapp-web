@@ -260,7 +260,7 @@ export default function ClientManager() {
               Teléfono
             </label>
             <input
-              type="tel"
+              type="number"
               value={form.phone}
               onChange={handleChange("phone")}
               placeholder="Ej: 56912345678"

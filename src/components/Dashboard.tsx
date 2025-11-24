@@ -75,7 +75,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
       title: 'Gestión',
       items: [
         // { id: 'documents', label: 'Documentos', icon: FileText, badge: '12' },
-        { id: 'Bookings', label: 'Bookings', icon: FileText, badge: '12' },
+        { id: 'Bookings', label: 'Reservas', icon: FileText, badge: null },
         { id: 'clients', label: 'Clientes', icon: Users, badge: null },
         { id: 'Barbers', label: 'Barberos', icon: GiBeard, badge: null },
         { id: 'Services', label: 'Servicios', icon: FileText, badge: null },

@@ -253,7 +253,7 @@ export default function AdminBookings() {
         client_id: form.client_id,
         service_id: form.service_id,
         date: form.date,
-        status: "confirmed",
+        status: "pending",
       },
     ]);
 
@@ -267,6 +267,7 @@ export default function AdminBookings() {
       if (business?.id) {
         loadData(business.id);
       }
+      window.dispatchEvent(new Event("admin-tutorial-next"));
     }
   }
 
